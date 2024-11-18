@@ -1,0 +1,79 @@
+import nltk
+import spacy
+import random
+from nltk.chat.util import Chat, reflections
+
+# Load the spaCy model for Named Entity Recognition (NER)
+nlp = spacy.load("en_core_web_sm")
+
+# Sample responses and patterns
+greetings = ["hello", "hi", "hey", "greetings"]
+responses = {
+    "greeting": ["Hello! How can I assist you today?", "Hi there! How can I help?", "Hey! How's it going?"],
+    "thanks": ["You're welcome!", "Happy to help!", "No problem!"],
+    "goodbye": ["Goodbye! Have a great day!", "See you later!", "Take care!"],
+    "default": ["I'm not sure how to respond to that.", "Could you clarify?", "Hmm, I don't understand."]
+}
+
+# Define a simple set of patterns and responses for the chatbot
+patterns = [
+    (r"(hi|hello|hey|greetings)", "greeting"),
+    (r"(thank you|thanks)", "thanks"),
+    (r"(bye|goodbye)", "goodbye"),
+    (r"(.*) your name?", "My name is Chatbot!"),
+    (r"how are you?", "I'm doing great, thank you! How about you?"),
+    (r"(.*) help(.*)", "Sure, what can I assist you with?"),
+    (r"(.*)", "default")
+]
+
+# Define a simple function to preprocess and extract intent using spaCy
+def extract_intent(text):
+    doc = nlp(text.lower())
+    
+    # Extract named entities and parts of speech
+    entities = [ent.text for ent in doc.ents]
+    if len(entities) > 0:
+        return f"I see you're talking about {', '.join(entities)}."
+    
+    # Look for simple greetings
+    for word in greetings:
+        if word in text.lower():
+            return "greeting"
+    
+    return "default"
+
+# Chatbot response function
+def respond_to_input(user_input):
+    intent = extract_intent(user_input)
+    
+    # If an entity is recognized, use that information
+    if "greeting" in intent:
+        return random.choice(responses["greeting"])
+    elif "thanks" in intent:
+        return random.choice(responses["thanks"])
+    elif "goodbye" in intent:
+        return random.choice(responses["goodbye"])
+    elif "default" in intent:
+        return random.choice(responses["default"])
+    else:
+        return "I didn't quite catch that. Can you ask something else?"
+
+# Main chatbot loop
+def chat():
+    print("Hello! I am Chatbot. Type 'bye' to exit.")
+    
+    while True:
+        user_input = input("You: ")
+        
+        # Exit condition
+        if user_input.lower() in ["bye", "exit", "quit"]:
+            print("Chatbot: Goodbye! Have a great day!")
+            break
+        
+        # Get response from the chatbot
+        response = respond_to_input(user_input)
+        
+        print(f"Chatbot: {response}")
+
+if __name__ == "__main__":
+    chat()
